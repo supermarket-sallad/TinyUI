@@ -418,10 +418,10 @@ class TinyUIExt:
 		self.tui.setValue(element.id, ival)
 
 	def _updateStepperFromPar(self, element: UIElement, par: td.ParGroup) -> None:
-		self.tui.setValue(element.id, par[0].val)
+		self.tui.setValue(element.id, par[0].val.eval())
 
 	def _updateBitPatternFromPar(self, element: UIElement, par: td.ParGroup) -> None:
-		self.tui.setValue(element.id, par, self.ownerComp.par[element.siblingParName])
+		self.tui.setValue(element.id, par[0].eval(), self.ownerComp.par[element.siblingParName].eval())
 
 	def _updateBitPatternSequenceStep(self, par: td.ParGroup) -> None:
 		patternPar = self.ownerComp.parGroup[par.name.removesuffix("step")]
