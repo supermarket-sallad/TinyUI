@@ -15,6 +15,7 @@ class ElementType(Enum):
 	bitPattern 		= 6
 	stringDisplay 	= 7
 	littleAnimation = 8
+	timeAnimation 	= 9
 
 @dataclass
 class UIElement:
@@ -206,11 +207,30 @@ class TinyUIExt:
 							toggleMode = False
 							)
 		self.elements.append(element)
+		self._createPar(element)
 		self._addToTUI(element)
 		self._appendToPickeledLayout(element)
 		self.ownerComp.par.Animationframe.expr = "absTime.frame % 64 / 8"
 		return element
-	
+
+	def AddTimeAnimation(self) -> UIElement:
+		element = UIElement(id = self._assignID(),
+		                    type = ElementType.timeAnimation,
+							label = "timeViewer",
+							parName = self._getUniqueParName("timeViewer1"),
+							rangeMin = 0.0,
+							rangeMax = 1.0,
+							interactive = False,
+							numElements=1,
+							menuOptions = [],
+							toggleMode = False,)
+		
+		self.elements.append(element)
+		self._createPar(element)
+		self._addToTUI(element)
+		self._appendToPickeledLayout(element)
+		return element
+
 	def AddBitPattern(self, numSteps: int = 8) -> UIElement:
 		element = UIElement(id = self._assignID(),
 							type=ElementType.bitPattern,
@@ -229,6 +249,8 @@ class TinyUIExt:
 		self._appendToPickeledLayout(element)
 
 		return element
+
+	
 
 ##-------tui
 	def _addToTUI(self, element: UIElement) -> None:
@@ -257,6 +279,8 @@ class TinyUIExt:
 			case(ElementType.bitPattern):
 				self.tui.addBitPattern(element.numElements)
 				return
+			case(ElementType.timeAnimation):
+				self.tui.addTimeAnimation()
 	
 	def _rebuildTUI(self) -> None:
 		self.tui.clearLayout()
@@ -285,7 +309,15 @@ class TinyUIExt:
 			case(ElementType.bitPattern):
 				par = self._createBitPatternPar(element)
 				self.parToElement[par] = element
+			case(ElementType.timeAnimation):
+				par = self._createTimeAnimationPar(element)
 
+	def _createTimeAnimationPar(self, element):
+		page = self.ownerComp.customPages["PARAMS"]
+		par = page.appendFloat(element.parName)
+		par.label   = "Time Display"
+		return par
+	
 	def _createSliderPar(self, element: UIElement) -> td.Par:
 		page = self.ownerComp.customPages["PARAMS"]
 		par = page.appendFloat(element.parName)
@@ -369,9 +401,14 @@ class TinyUIExt:
 				self._updateStepperFromPar(element, par)
 			case(ElementType.bitPattern):
 				self._updateBitPatternFromPar(element, par)
-				
+			case(ElementType.timeAnimation):
+				self._updateTimeAnimationFromPar(element, par)
+
+	def _updateTimeAnimationFromPar(self, element: UIElement, par: td.ParGroup) -> None:
+		self.tui.setValue(element.id, par[0].eval())
+
 	def _updateSliderFromPar(self, element: UIElement, par: td.ParGroup) -> None:
-		self.tui.setValue(element.id, par[0].val)
+		self.tui.setValue(element.id, par[0].eval())
 
 	def _updateMenuFromPar(self, element: UIElement, par: td.ParGroup) -> None:
 		self.tui.setValue(element.id, par[0].menuIndex)
